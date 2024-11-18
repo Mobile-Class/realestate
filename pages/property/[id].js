@@ -5,10 +5,15 @@ import { BsGridFill } from 'react-icons/bs';
 import { GoVerified } from 'react-icons/go';
 import millify from 'millify';
 
+import dynamic from 'next/dynamic';
+const MapComponent = dynamic(() => import('../../components/MapComponent'), { ssr: false });
+
+import 'leaflet/dist/leaflet.css'; 
+
 import { baseUrl, fetchApi } from '../../utils/fetchApi';
 import ImageScrollbar from '../../components/ImageScrollbar';
 
-const PropertyDetails = ({ propertyDetails: { price, rentFrequency, rooms, title, baths, area, agency, isVerified, description, type, purpose, furnishingStatus, amenities, photos } }) => (
+const PropertyDetails = ({ propertyDetails: { price, rentFrequency, rooms, title, baths, area, agency, isVerified, description, type, purpose, furnishingStatus, amenities, photos, geography } }) => (
   <Box maxWidth='1000px' margin='auto' p='4'>
     {photos && <ImageScrollbar data={photos} />}
     <Box w='full' p='6'>
@@ -56,14 +61,23 @@ const PropertyDetails = ({ propertyDetails: { price, rentFrequency, rooms, title
           ))}
         </Flex>
     </Box>
+
+    {geography && geography.lat && geography.lng && (
+      <Box marginTop="5">
+        <Text fontSize="2xl" fontWeight="black">Location:</Text>
+        <MapComponent center={[geography.lat, geography.lng]} title={title} />
+      </Box>
+    )}
   </Box>
+
+  
 );
 
 export default PropertyDetails;
 
 export async function getServerSideProps({ params: { id } }) {
   const data = await fetchApi(`${baseUrl}/properties/detail?externalID=${id}`);
-  
+
   return {
     props: {
       propertyDetails: data,
