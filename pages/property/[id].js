@@ -34,6 +34,7 @@ const MapComponent = dynamic(() => import("../../components/MapComponent"), {
 import "leaflet/dist/leaflet.css";
 
 import { baseUrl, fetchApi } from "../../utils/fetchApi";
+import { useRouter } from "next/router"; // Import useRouter
 
 const PropertyDetails = ({
   propertyDetails: {
@@ -57,6 +58,12 @@ const PropertyDetails = ({
 }) => {
   const [showFullDescription, setShowFullDescription] = useState(false);
   const { isOpen, onOpen, onClose } = useDisclosure(); // For modal control
+  const router = useRouter(); // Initialize useRouter
+
+  const handleInvestmentClick = () => {
+    // Navigate to the investment page
+    router.push(`/investment/${id}`); // Pass the property ID as a query parameter or handle as needed
+  };
 
   return (
     <Box maxWidth="1000px" margin="auto" p="4">
@@ -218,7 +225,7 @@ const PropertyDetails = ({
             size="lg"
             fontWeight="bold"
             borderRadius="full"
-            onClick={() => alert("Explore Investment Opportunity")} // Replace with actual functionality
+            onClick={handleInvestmentClick} // Navigate to investment page
             boxShadow="lg"
             _hover={{ bg: "teal.400" }}
             _active={{ bg: "teal.500", transform: "scale(0.95)" }}

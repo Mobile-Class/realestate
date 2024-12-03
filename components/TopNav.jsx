@@ -62,6 +62,19 @@ const TopNav = () => {
           Rent Property
         </Box>
       </Link>
+      <Link href="/market-trends" passHref>
+        <Box
+          as="button"
+          fontWeight={isActive('/market-trends') ? 'bold' : 'normal'}
+          px="4"
+          py="2"
+          borderBottom={isActive('/market-trends') ? '2px solid blue' : '2px solid transparent'}
+          _hover={{ borderBottom: '2px solid blue', cursor: 'pointer' }}
+          m="2"
+        >
+          Market Trends
+        </Box>
+      </Link>
     </Flex>
   );
 };

@@ -1,114 +1,335 @@
-import { useState, useEffect } from 'react';
-import { Box, Text, Flex, Divider, Image, Table, Tbody, Tr, Td, Thead, Th, Button } from '@chakra-ui/react';
-import { useRouter } from 'next/router';
-import { baseUrl, fetchApi } from '../../utils/fetchApi';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
+  import { useState, useEffect } from 'react';
+  import { Box, Text, Flex, Grid, Divider, Image, Table, Tbody, Tr, Td, Thead, Th, Button } from '@chakra-ui/react';
+  import { useRouter } from 'next/router';
+  import { baseUrl, fetchApi } from '../../utils/fetchApi';
+  import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
+  import { FaHome, FaMoneyBill, FaWallet, FaPercent, FaChartLine, FaUsers } from 'react-icons/fa'; 
+  import dynamic from "next/dynamic";
+  const MapComponent = dynamic(() => import("../../components/MapComponent"), {
+    ssr: false,
+  });
 
-const ExecutiveSummary = ({ property }) => {
-  const router = useRouter();
-  const {
-    id,
-    title,
-    description,
-    price,
-    area,
-    purpose,
-    type,
-    agency,
-    rooms,
-    baths,
-    geography,
-    coverPhoto,
-  } = property;
-
-  // Mock financial data (Replace with real data if available)
-  const financialData = {
-    purchasePrice: price || 530000000,
-    downPayment: (price || 530000000) * 0.2,
-    loanAmount: (price || 530000000) * 0.8,
-    interestRate: 3.5,
-    loanTerm: 30,
-    grossRentalIncome: 40000000,
-    operatingExpenses: 10000000,
-    vacancyRate: 5,
-    appreciationRate: 2,
-    resaleHoldingPeriod: 10,
-  };
-
-  // Function to generate cash flow data
-  const generateCashFlowData = (data) => {
+  const ExecutiveSummary = ({ property }) => {
+    const router = useRouter();
     const {
-      purchasePrice,
-      downPayment,
-      loanAmount,
-      interestRate,
-      loanTerm,
-      grossRentalIncome,
-      operatingExpenses,
-      vacancyRate,
-      appreciationRate,
-      resaleHoldingPeriod,
-    } = data;
+      id,
+      title,
+      description,
+      price,
+      area,
+      purpose,
+      type,
+      agency,
+      rooms,
+      baths,
+      geography,
+      coverPhoto,
+    } = property || {};  // Handle the case when 'property' is undefined or null.
 
-    const annualInterestRate = interestRate / 100;
-    const monthlyInterestRate = annualInterestRate / 12;
-    const totalPayments = loanTerm * 12;
-    const monthlyPayment =
-      (loanAmount * monthlyInterestRate) /
-      (1 - Math.pow(1 + monthlyInterestRate, -totalPayments));
-    const annualDebtService = monthlyPayment * 12;
+    // Mock financial data (Replace with real data if available)
+    const financialData = {
+      purchasePrice: price || 530000000,
+      downPayment: (price || 530000000) * 0.2,
+      loanAmount: (price || 530000000) * 0.8,
+      interestRate: 3.5,
+      loanTerm: 30,
+      grossRentalIncome: 40000000,
+      operatingExpenses: 10000000,
+      vacancyRate: 5,
+      appreciationRate: 2,
+      resaleHoldingPeriod: 10,
+    };
 
-    let cashFlowData = [];
+    // Function to generate cash flow data
+    const generateCashFlowData = (data) => {
+      const {
+        purchasePrice,
+        downPayment,
+        loanAmount,
+        interestRate,
+        loanTerm,
+        grossRentalIncome,
+        operatingExpenses,
+        vacancyRate,
+        appreciationRate,
+        resaleHoldingPeriod,
+      } = data;
 
-    for (let year = 1; year <= resaleHoldingPeriod; year++) {
-      const vacancyLoss = (grossRentalIncome * vacancyRate) / 100;
-      const netOperatingIncome = grossRentalIncome - vacancyLoss - operatingExpenses;
-      const cashFlow = netOperatingIncome - annualDebtService;
+      const annualInterestRate = interestRate / 100;
+      const monthlyInterestRate = annualInterestRate / 12;
+      const totalPayments = loanTerm * 12;
+      const monthlyPayment =
+        (loanAmount * monthlyInterestRate) /
+        (1 - Math.pow(1 + monthlyInterestRate, -totalPayments));
+      const annualDebtService = monthlyPayment * 12;
 
-      const propertyValue =
-        purchasePrice * Math.pow(1 + appreciationRate / 100, year);
+      let cashFlowData = [];
 
-      cashFlowData.push({
-        year,
-        netOperatingIncome,
-        cashFlow,
-        propertyValue,
-      });
-    }
+      for (let year = 1; year <= resaleHoldingPeriod; year++) {
+        const vacancyLoss = (grossRentalIncome * vacancyRate) / 100;
+        const netOperatingIncome = grossRentalIncome - vacancyLoss - operatingExpenses;
+        const cashFlow = netOperatingIncome - annualDebtService;
 
-    return cashFlowData;
-  };
+        const propertyValue =
+          purchasePrice * Math.pow(1 + appreciationRate / 100, year);
 
-  // Generate cash flow data
-  const cashFlowData = generateCashFlowData(financialData);
+        cashFlowData.push({
+          year,
+          netOperatingIncome,
+          cashFlow,
+          propertyValue,
+        });
+      }
 
-  return (
-    <Box maxWidth="1000px" margin="auto" p="6" fontFamily="Arial, sans-serif">
-      {/* Title Section */}
-      <Box textAlign="center" mb="6">
-        <Text fontSize="3xl" fontWeight="bold" mb="2">
-          {title}
-        </Text>
-        <Text color="gray.600" fontSize="lg">
-          {purpose.charAt(0).toUpperCase() + purpose.slice(1)} - {type.charAt(0).toUpperCase() + type.slice(1)}
-        </Text>
-      </Box>
+      return cashFlowData;
+    };
 
-      {/* Property Image */}
-      {coverPhoto && (
-        <Box mb="6">
-          <Image
-            src={coverPhoto.url}
-            alt={title}
-            width="100%"
-            height="auto"
-            borderRadius="md"
-            objectFit="cover"
-          />
+    // Generate cash flow data
+    const cashFlowData = generateCashFlowData(financialData);
+
+    // Helper function to generate random values within a range
+    const generateRandomValue = (baseValue, variance = 0.05) => {
+      const min = baseValue * (1 - variance);
+      const max = baseValue * (1 + variance);
+      return (Math.random() * (max - min) + min).toFixed(2);
+    };
+
+    // Exchange rate (USD to AED), assuming it's 1 USD = 3.67 AED (check for up-to-date rate)
+    const exchangeRate = 3.67;
+
+    // Base values for each metric
+    const financialDataLeft = {
+      "Cash on Cash Return": 5.51,  // base value for Cash on Cash Return
+      "Internal Rate of Return (IRR)": 15.69,  // base value for IRR
+      "Capitalization Rate": 457,  // base value for Capitalization Rate
+      "Gross Rent Multiplier (GRM)": 13.89,  // base value for GRM
+      "Debt-coverage Ratio (DCR)": 1.35,  // base value for DCR
+      "Operating Expense Ratio (OER)": 33.22,  // base value for OER
+      "After Repair Value": 150000*exchangeRate,  // base value for After Repair Value
+      "Profit/Equity From Rehab": 38000*exchangeRate,  // base value for Profit/Equity From Rehab
+    };
+
+    const operatingDataRight = {
+      "Rent": 900 * exchangeRate,  // Rent
+      "Gross Operating Income (GOI)": 10260 * exchangeRate,  // Gross Operating Income
+      "Total Expenses": 3409 * exchangeRate,  // Total Expenses
+      "Net Operating Income (NOI)": 6851 * exchangeRate,  // Net Operating Income
+      "Annual Debt Service": 5087 * exchangeRate,  // Annual Debt Service
+      "Cash Flow Before Taxes (CFBT)": 1764 * exchangeRate,  // Cash Flow Before Taxes
+      "Income Tax Liability": 323 * exchangeRate,  // Income Tax Liability
+      "Cash Flow After Taxes (CFAT)": 1441 * exchangeRate,  // Cash Flow After Taxes
+    };
+
+    return (
+      <Box maxWidth="100%" margin="auto" p="6" fontFamily="Arial, sans-serif">
+        
+        <Box mb="8">
+          <Grid templateColumns="repeat(2, 1fr)" gap="6">
+            {/* Property Overview */}
+            <Box>
+              <Box fontSize="2xl" fontWeight="bold" mb="4">
+                <Text>{title || 'Not Available'}</Text>
+              </Box>
+
+              {/* Condominium */}
+              <Box mb="4">
+                <Text>Condominium: {`${rooms} bedrooms, ${baths} bathrooms`}</Text>
+              </Box>
+
+              {/* Year built */}
+              <Box mb="4">
+                <Text>Year built: {'2021'}</Text>
+              </Box>
+
+              {/* Size */}
+              <Box mb="4">
+                <Text>Size: {area ? `${area.toFixed(2)} sqft` : 'Not Specified'}</Text>
+              </Box>
+
+              {/* Investment strategy */}
+              <Box mb="4">
+                <Text>Investment strategy: {purpose ? purpose.charAt(0).toUpperCase() + purpose.slice(1) : 'N/A'} - 
+                {type ? type.charAt(0).toUpperCase() + type.slice(1) : 'N/A'}</Text>
+              </Box>
+
+              {/* Description */}
+              <Box mb="4">
+                <Text>{'This is a sample rental investment report. It takes approx. 1-2 minutes to generate a report like this thanks to our MLS data loader. The report includes a Cash flow forecast, many real estate metrics and optionally also Sales and Rental comps.'}</Text>
+              </Box>
+            </Box>
+
+            {/* Property Image */}
+            <Box>
+              {coverPhoto ? (
+                <Box mb="6">
+                  <Image
+                    src={coverPhoto.url}
+                    alt={title || 'Property Image'}
+                    width="100%"
+                    height="auto"
+                    borderRadius="md"
+                    objectFit="cover"
+                  />
+                </Box>
+              ) : (
+                <Box mb="6">
+                  <Text>No image available</Text>
+                </Box>
+              )}
+            </Box>
+          </Grid>
         </Box>
-      )}
+        {/* 4 Rectangular Boxes with Icons and Text */}
+        <Box mb="8">
+          <Grid templateColumns="repeat(4, 1fr)" gap="6">
+            {/* Box 1 - Purchase Price */}
+            <Box
+              bg="#F6E1B3"
+              p="4"
+              borderRadius="md"
+              textAlign="center"
+              boxShadow="sm"
+              display="flex"
+              flexDirection="column"
+              alignItems="center"
+            >
+              <Box fontSize="3xl" mb="2">
+                {/* Icon for Purchase Price */}
+                <FaMoneyBill />
+                </Box>
+              <Text fontSize="lg" fontWeight="bold">
+                AED {financialData.purchasePrice.toLocaleString()}
+              </Text>
+              <Text>Purchase Price</Text>
+            </Box>
 
-      {/* Overview Section */}
+            {/* Box 2 - Rent */}
+            <Box
+              bg="#B3E6F2"
+              p="4"
+              borderRadius="md"
+              textAlign="center"
+              boxShadow="sm"
+              display="flex"
+              flexDirection="column"
+              alignItems="center"
+            >
+              <Box fontSize="3xl" mb="2">
+                {/* Icon for Rent */}
+                <FaHome />
+                </Box>
+              <Text fontSize="lg" fontWeight="bold">
+                AED {financialData.grossRentalIncome.toLocaleString()}
+              </Text>
+              <Text>Gross Rental Income</Text>
+            </Box>
+
+            {/* Box 3 - Monthly Cash Flow */}
+            <Box
+              bg="#E1F7D5"
+              p="4"
+              borderRadius="md"
+              textAlign="center"
+              boxShadow="sm"
+              display="flex"
+              flexDirection="column"
+              alignItems="center"
+            >
+              <Box fontSize="3xl" mb="2">
+                {/* Icon for Monthly Cash Flow */}
+                <FaWallet />
+                </Box>
+              <Text fontSize="lg" fontWeight="bold">
+                AED {Math.max(financialData.grossRentalIncome - financialData.operatingExpenses - (financialData.loanAmount * financialData.interestRate / 100 / 12), 0).toLocaleString()}
+              </Text>
+              <Text>Monthly Cash Flow</Text>
+            </Box>
+
+            {/* Box 4 - Cash on Cash Return */}
+            <Box
+              bg="#FFEBB7"
+              p="4"
+              borderRadius="md"
+              textAlign="center"
+              boxShadow="sm"
+              display="flex"
+              flexDirection="column"
+              alignItems="center"
+            >
+              <Box fontSize="3xl" mb="2">
+                {/* Icon for Cash on Cash Return */}
+                <FaPercent />
+              </Box>
+              <Text fontSize="lg" fontWeight="bold">
+                {((financialData.grossRentalIncome - financialData.operatingExpenses) / financialData.downPayment * 100).toFixed(2)}%
+              </Text>
+              <Text>Cash on Cash Return</Text>
+            </Box>
+          </Grid>
+        </Box>
+
+      <Grid templateColumns="repeat(2, 1fr)" gap="6">
+        
+        {/* Financial Analysis Table */}
+        <Box>
+          <Text fontSize="2xl" fontWeight="bold" mb="4">Financial Analysis</Text>
+          <Table variant="simple">
+            <Tbody>
+              {Object.entries(financialDataLeft).map(([key, baseValue]) => (
+                <Tr key={key}>
+                  <Td fontWeight="bold">{key}</Td>
+                  <Td>
+                    {
+                      key === "Cash on Cash Return" 
+                        ? `${((financialData.grossRentalIncome - financialData.operatingExpenses) / financialData.downPayment * 100).toFixed(2)}%`
+                        : (key === "Internal Rate of Return (IRR)" || key === "Capitalization Rate")
+                          ? `${generateRandomValue(baseValue, 0.05)}%`
+                          : key === "Gross Rent Multiplier (GRM)"
+                            ? generateRandomValue(baseValue, 0.05)
+                            : key === "Debt-coverage Ratio (DCR)"
+                              ? generateRandomValue(baseValue, 0.05)
+                              : key === "Operating Expense Ratio (OER)"
+                                ? `${generateRandomValue(baseValue, 0.05)}%`
+                                : key === "After Repair Value" || key === "Profit/Equity From Rehab"
+                                  ? `AED ${generateRandomValue(baseValue, 0.1)}`
+                                  : baseValue
+                    }
+                  </Td>
+                </Tr>
+              ))}
+            </Tbody>
+          </Table>
+        </Box>
+
+        {/* Operating Analysis Table on the Right */}
+        <Box>
+          <Text fontSize="2xl" fontWeight="bold" mb="4">Operating Analysis</Text>
+          <Table variant="simple">
+            <Tbody>
+              {Object.entries(operatingDataRight).map(([key, baseValue]) => (
+                <Tr key={key}>
+                  <Td fontWeight="bold">{key}</Td>
+                  <Td>
+                    {
+                      key === "Rent" 
+                        ? `AED ${financialData.grossRentalIncome.toLocaleString()}` 
+                        : (key === "Gross Operating Income (GOI)" || key === "Total Expenses" ||
+                          key === "Net Operating Income (NOI)" || key === "Annual Debt Service" || 
+                          key === "Cash Flow Before Taxes (CFBT)" || key === "Income Tax Liability" || 
+                          key === "Cash Flow After Taxes (CFAT)")
+                          ? `AED ${generateRandomValue(baseValue, 0.05)}`
+                          : baseValue
+                    }
+                  </Td>
+                </Tr>
+              ))}
+            </Tbody>
+          </Table>
+        </Box>
+
+      </Grid>
+
+      {/* Overview Section
       <Box mb="8">
         <Text fontSize="2xl" fontWeight="bold" mb="4">
           Property Overview
@@ -118,7 +339,7 @@ const ExecutiveSummary = ({ property }) => {
           <Tbody>
             <Tr>
               <Td fontWeight="bold">Price:</Td>
-              <Td>AED {price ? price.toLocaleString() : 'Contact for Price'}</Td>
+              <Td>{price ? `AED ${price.toLocaleString()}` : 'Contact for Price'}</Td>
             </Tr>
             <Tr>
               <Td fontWeight="bold">Area:</Td>
@@ -134,11 +355,11 @@ const ExecutiveSummary = ({ property }) => {
             </Tr>
             <Tr>
               <Td fontWeight="bold">Purpose:</Td>
-              <Td>{purpose.charAt(0).toUpperCase() + purpose.slice(1)}</Td>
+              <Td>{purpose ? purpose.charAt(0).toUpperCase() + purpose.slice(1) : 'N/A'}</Td>
             </Tr>
             <Tr>
               <Td fontWeight="bold">Type:</Td>
-              <Td>{type.charAt(0).toUpperCase() + type.slice(1)}</Td>
+              <Td>{type ? type.charAt(0).toUpperCase() + type.slice(1) : 'N/A'}</Td>
             </Tr>
             {geography && (
               <Tr>
@@ -150,25 +371,27 @@ const ExecutiveSummary = ({ property }) => {
             )}
           </Tbody>
         </Table>
-      </Box>
+      </Box> */}
 
-      {/* Description Section */}
+      {/* Description Section
       <Box mb="8">
         <Text fontSize="2xl" fontWeight="bold" mb="4">
           Description
         </Text>
         <Divider mb="4" />
         <Text lineHeight="1.8" color="gray.600">
-          {description}
+          {description || 'No description available.'}
         </Text>
-      </Box>
+      </Box> */}
+      
+      <Grid templateColumns="repeat(2, 1fr)" gap="6"   mt={{ base: "4", md: "8", lg: "12" }}  // Responsive margin-top
+      >
 
-      {/* Financial Breakdown */}
+{/* Financial Breakdown */}
       <Box mb="8">
         <Text fontSize="2xl" fontWeight="bold" mb="4">
           Financial Breakdown
         </Text>
-        <Divider mb="4" />
         <Table variant="simple">
           <Tbody>
             <Tr>
@@ -195,175 +418,72 @@ const ExecutiveSummary = ({ property }) => {
         </Table>
       </Box>
 
-      {/* Operating Analysis */}
-      <Box mb="8">
-        <Text fontSize="2xl" fontWeight="bold" mb="4">
-          Operating Analysis
-        </Text>
-        <Divider mb="4" />
-        <Table variant="simple">
-          <Tbody>
-            <Tr>
-              <Td fontWeight="bold">Gross Rental Income:</Td>
-              <Td>AED {financialData.grossRentalIncome.toLocaleString()}</Td>
-            </Tr>
-            <Tr>
-              <Td fontWeight="bold">Vacancy Loss ({financialData.vacancyRate}%):</Td>
-              <Td>
-                AED {((financialData.grossRentalIncome * financialData.vacancyRate) / 100).toLocaleString()}
-              </Td>
-            </Tr>
-            <Tr>
-              <Td fontWeight="bold">Operating Expenses:</Td>
-              <Td>AED {financialData.operatingExpenses.toLocaleString()}</Td>
-            </Tr>
-            <Tr>
-              <Td fontWeight="bold">Net Operating Income:</Td>
-              <Td>
-                AED
-                {(
-                  financialData.grossRentalIncome -
-                  (financialData.grossRentalIncome * financialData.vacancyRate) / 100 -
-                  financialData.operatingExpenses
-                ).toLocaleString()}
-              </Td>
-            </Tr>
-          </Tbody>
-        </Table>
-      </Box>
-
-      {/* Cash Flow Forecast */}
-      <Box mb="8">
-        <Text fontSize="2xl" fontWeight="bold" mb="4">
-          Long-term Cash Flow Forecast
-        </Text>
-        <Divider mb="4" />
-        <Table variant="simple">
-          <Thead>
-            <Tr>
-              <Th>Year</Th>
-              <Th>NOI (AED)</Th>
-              <Th>Cash Flow (AED)</Th>
-              <Th>Property Value (AED)</Th>
-            </Tr>
-          </Thead>
-          <Tbody>
-            {cashFlowData.map((item) => (
-              <Tr key={item.year}>
-                <Td>{item.year}</Td>
-                <Td>{item.netOperatingIncome.toLocaleString()}</Td>
-                <Td>{item.cashFlow.toLocaleString()}</Td>
-                <Td>{item.propertyValue.toLocaleString()}</Td>
-              </Tr>
-            ))}
-          </Tbody>
-        </Table>
-      </Box>
-
+        
       {/* Cash Flow Chart */}
-      <Box mb="8">
-        <Text fontSize="2xl" fontWeight="bold" mb="4">
-          Cash Flow & Property Value Over Time
-        </Text>
-        <Divider mb="4" />
-        <LineChart
-          width={800}
-          height={400}
-          data={cashFlowData}
-          margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-        >
+      <Box mb="12">
+        <Text fontSize="2xl" fontWeight="bold" mb="4">Cash Flow Chart</Text>
+        <LineChart width={600} height={300} data={cashFlowData}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="year" />
           <YAxis />
           <Tooltip />
           <Legend />
-          <Line type="monotone" dataKey="cashFlow" stroke="#8884d8" name="Cash Flow" />
-          <Line type="monotone" dataKey="propertyValue" stroke="#82ca9d" name="Property Value" />
+          <Line type="monotone" dataKey="grossOperatingIncome" stroke="#8884d8" activeDot={{ r: 8 }} />
+          <Line type="monotone" dataKey="netOperatingIncome" stroke="#82ca9d" />
+          <Line type="monotone" dataKey="cashFlow" stroke="#ff7300" />
         </LineChart>
       </Box>
+      </Grid>
 
-      {/* Resale Analysis */}
+      <Grid templateColumns="repeat(2, 1fr)"    >
       <Box mb="8">
-        <Text fontSize="2xl" fontWeight="bold" mb="4">
-          Resale Analysis
+      <Text fontSize="2xl" fontWeight="bold" mb="4">Cash Flow Chart</Text>
+
+        <Text lineHeight="1.8" color="gray.600">
+          {description || 'No description available.'}
         </Text>
-        <Divider mb="4" />
-        <Table variant="simple">
-          <Tbody>
-            <Tr>
-              <Td fontWeight="bold">
-                Estimated Property Value after {financialData.resaleHoldingPeriod} years:
-              </Td>
-              <Td>
-                AED{' '}
-                {(
-                  financialData.purchasePrice *
-                  Math.pow(1 + financialData.appreciationRate / 100, financialData.resaleHoldingPeriod)
-                ).toLocaleString()}
-              </Td>
-            </Tr>
-            <Tr>
-              <Td fontWeight="bold">Total Equity Gain:</Td>
-              <Td>
-                AED{' '}
-                {(
-                  financialData.purchasePrice *
-                    Math.pow(1 + financialData.appreciationRate / 100, financialData.resaleHoldingPeriod) -
-                  financialData.loanAmount -
-                  financialData.downPayment
-                ).toLocaleString()}
-              </Td>
-            </Tr>
-          </Tbody>
-        </Table>
       </Box>
 
-      {/* Agency Information */}
-      {agency && (
-        <Box mt="8">
-          <Text fontSize="2xl" fontWeight="bold" mb="4">
-            Listed By
-          </Text>
-          <Divider mb="4" />
-          <Flex alignItems="center">
-            <Image
-              src={agency.logo.url}
-              alt={agency.name}
-              boxSize="50px"
-              borderRadius="full"
-              objectFit="cover"
-              mr="4"
-            />
-            <Box>
-              <Text fontWeight="bold" fontSize="lg">
-                {agency.name}
-              </Text>
-              <Text color="gray.600" fontSize="sm">
-                License: {agency.licenses.map((license) => license.number).join(', ')}
-              </Text>
-            </Box>
-          </Flex>
+        {/* Location Map */}
+      {geography && geography.lat && geography.lng && (
+        <Box mb="8" >
+      <Text fontSize="2xl" fontWeight="bold" mb="4">Location</Text>
+
+          
+          <MapComponent center={[geography.lat, geography.lng]} title={title} />
         </Box>
       )}
+      </Grid>
 
-      {/* Back to Property Details Button */}
-      <Box textAlign="center" mt="8">
-        <Button colorScheme="blue" onClick={() => router.push(`/property/${id}`)}>
-          Back to Property Details
-        </Button>
-      </Box>
+      {/* Back Button
+      <Button colorScheme="blue" onClick={() => router.push(`/property/${id}`)}>
+        Back to Property Details
+      </Button> */}
     </Box>
   );
 };
 
-export default ExecutiveSummary;
-
 export async function getServerSideProps({ params: { id } }) {
-  const data = await fetchApi(`${baseUrl}/properties/detail?externalID=${id}`);
+  try {
+    const data = await fetchApi(`${baseUrl}/properties/detail?externalID=${id}`);
+    
+    if (!data) {
+      return {
+        notFound: true, 
+      };
+    }
 
-  return {
-    props: {
-      property: data,
-    },
-  };
+    return {
+      props: {
+        property: data,
+      },
+    };
+  } catch (error) {
+    console.error("Error fetching property data:", error);
+    return {
+      notFound: true, 
+    };
+  }
 }
+
+export default ExecutiveSummary;
