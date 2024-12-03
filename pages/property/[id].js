@@ -7,6 +7,13 @@ import {
   GridItem,
   Image,
   Button,
+  useDisclosure,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalCloseButton,
 } from "@chakra-ui/react";
 import { Avatar } from "@chakra-ui/avatar";
 import { FaBed, FaBath } from "react-icons/fa";
@@ -14,7 +21,10 @@ import { BsGridFill } from "react-icons/bs";
 import { GoVerified } from "react-icons/go";
 import millify from "millify";
 import { useState } from "react";
-import { useRouter } from "next/router";
+import Slider from "react-slick";
+import "slick-carousel/slick/slick.css";
+
+import "slick-carousel/slick/slick-theme.css";
 
 import dynamic from "next/dynamic";
 const MapComponent = dynamic(() => import("../../components/MapComponent"), {
@@ -45,8 +55,8 @@ const PropertyDetails = ({
     id,
   },
 }) => {
-  const router = useRouter();
   const [showFullDescription, setShowFullDescription] = useState(false);
+  const { isOpen, onOpen, onClose } = useDisclosure(); // For modal control
 
   return (
     <Box maxWidth="1000px" margin="auto" p="4">
@@ -105,7 +115,7 @@ const PropertyDetails = ({
                     paddingX="4"
                     paddingY="2"
                     leftIcon={<BsGridFill />}
-                    onClick={() => router.push(`/property/photos/${id}`)}
+                    onClick={onOpen} // Open the modal
                     zIndex="1"
                     _hover={{ bg: "gray.100" }}
                     _active={{ bg: "gray.200" }}
@@ -118,6 +128,39 @@ const PropertyDetails = ({
           </Grid>
         </Box>
       )}
+
+      {/* Modal for All Photos */}
+      <Modal isOpen={isOpen} onClose={onClose} size="full">
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>All Photos</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <Slider
+              dots={true}
+              infinite={true}
+              speed={500}
+              slidesToShow={1}
+              slidesToScroll={1}
+              arrows={true}
+            >
+              {photos.map((photo, index) => (
+                <Box key={index}>
+                  <Image
+                    src={photo.url}
+                    alt={`Photo ${index + 1}`}
+                    width="100%"
+                    height="auto"
+                    objectFit="contain"
+                    borderRadius="md"
+                    boxShadow="lg"
+                  />
+                </Box>
+              ))}
+            </Slider>
+          </ModalBody>
+        </ModalContent>
+      </Modal>
 
       {/* Property Details */}
       <Box w="full" p="6">
@@ -138,8 +181,8 @@ const PropertyDetails = ({
           w="250px"
           color="blue.400"
         >
-          {rooms}
-          <FaBed /> | {baths} <FaBath /> | {millify(area)} sqft <BsGridFill />
+          {rooms} <FaBed /> | {baths} <FaBath /> | {millify(area)} sqft{" "}
+          <BsGridFill />
         </Flex>
       </Box>
 
@@ -175,7 +218,7 @@ const PropertyDetails = ({
             size="lg"
             fontWeight="bold"
             borderRadius="full"
-            onClick={() => router.push(`/investment/${id}`)}
+            onClick={() => alert("Explore Investment Opportunity")} // Replace with actual functionality
             boxShadow="lg"
             _hover={{ bg: "teal.400" }}
             _active={{ bg: "teal.500", transform: "scale(0.95)" }}
