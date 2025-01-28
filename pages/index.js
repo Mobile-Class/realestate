@@ -5,6 +5,7 @@ import { Flex, Box, Text, Button } from '@chakra-ui/react';
 import Property from '../components/Property';
 import { baseUrl, fetchApi } from '../utils/fetchApi';
 
+
 export const Banner = ({ purpose, title1, title2, desc1, desc2, desc3, imageUrl }) => (
   <Flex flexWrap='wrap' justifyContent='center' alignItems='center' m='10'>
     <Image src={imageUrl} width={700} height={500} />
@@ -16,28 +17,36 @@ export const Banner = ({ purpose, title1, title2, desc1, desc2, desc3, imageUrl 
   </Flex>
 );
 
+const Home = ({ propertiesForSale, propertiesForRent }) => {
+  //const { saveMouseData } = useMouseTracker(); // Use the custom hook
 
-const Home = ({ propertiesForSale, propertiesForRent }) => (
-  <Box>
-    <Banner
-      purpose='HOME'
-      title1='Find Your'
-      title2='Dream Home'
-      desc1=' Explore our curated selection of exquisite '
-      desc2='properties meticulously tailored to your'
-      desc3='unique dream home vision'
-      imageUrl='/images/hero.png'
-      //imageUrl='https://bayut-production.s3.eu-central-1.amazonaws.com/image/145426814/33973352624c48628e41f2ec460faba4'
-    />
-    <Flex flexWrap='wrap'>
-      {propertiesForRent.map((property) => <Property property={property} key={property.id} />)}
-    </Flex>
-  </Box>
-);
+  return (
+    <Box>
+      <Banner
+        purpose='HOME'
+        title1='Find Your'
+        title2='Dream Home'
+        desc1=' Explore our curated selection of exquisite '
+        desc2='properties meticulously tailored to your'
+        desc3='unique dream home vision'
+        imageUrl='/images/hero.png'
+      />
+      <Flex flexWrap='wrap'>
+        {propertiesForRent.map((property) => (
+          <Property property={property} key={property.id} />
+        ))}
+      </Flex>
+    </Box>
+  );
+};
 
 export async function getStaticProps() {
-  const propertyForSale = await fetchApi(`${baseUrl}/properties/list?locationExternalIDs=5002&purpose=for-sale&hitsPerPage=6`);
-  const propertyForRent = await fetchApi(`${baseUrl}/properties/list?locationExternalIDs=5002&purpose=for-rent&hitsPerPage=6`);
+  const propertyForSale = await fetchApi(
+    `${baseUrl}/properties/list?locationExternalIDs=5002&purpose=for-sale&hitsPerPage=6`
+  );
+  const propertyForRent = await fetchApi(
+    `${baseUrl}/properties/list?locationExternalIDs=5002&purpose=for-rent&hitsPerPage=6`
+  );
 
   return {
     props: {

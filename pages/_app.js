@@ -3,10 +3,13 @@ import Head from 'next/head';
 import NProgress from 'nprogress';
 import { ChakraProvider } from '@chakra-ui/react';
 import 'leaflet/dist/leaflet.css';
+import { Flex, Box, Text, Button } from '@chakra-ui/react';
+import useMouseTracker from '../components/useMouseTracker'; // Import the custom hook
 
 import Layout from '../components/Layout';
 
 function MyApp({ Component, pageProps }) {
+  const { saveMouseData } = useMouseTracker(); // Use the custom hook
   NProgress.configure({ showSpinner: false });
 
   Router.events.on('routeChangeStart', () => {
@@ -26,6 +29,10 @@ function MyApp({ Component, pageProps }) {
         <Layout>
           <Component {...pageProps} />
         </Layout>
+        <Button onClick={saveMouseData} mt="5" colorScheme="teal">
+          Save Mouse Click Data
+        </Button>
+
       </ChakraProvider>
     </>
   );

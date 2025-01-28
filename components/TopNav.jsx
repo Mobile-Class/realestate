@@ -36,32 +36,6 @@ const TopNav = () => {
           Search
         </Box>
       </Link>
-      <Link href="/search?purpose=for-sale" passHref>
-        <Box
-          as="button"
-          fontWeight={isActive('/search?purpose=for-sale') ? 'bold' : 'normal'}
-          px="4"
-          py="2"
-          borderBottom={isActive('/search?purpose=for-sale') ? '2px solid blue' : '2px solid transparent'}
-          _hover={{ borderBottom: '2px solid blue', cursor: 'pointer' }}
-          m="2"
-        >
-          Buy Property
-        </Box>
-      </Link>
-      <Link href="/search?purpose=for-rent" passHref>
-        <Box
-          as="button"
-          fontWeight={isActive('/search?purpose=for-rent') ? 'bold' : 'normal'}
-          px="4"
-          py="2"
-          borderBottom={isActive('/search?purpose=for-rent') ? '2px solid blue' : '2px solid transparent'}
-          _hover={{ borderBottom: '2px solid blue', cursor: 'pointer' }}
-          m="2"
-        >
-          Rent Property
-        </Box>
-      </Link>
       <Link href="/market-trends" passHref>
         <Box
           as="button"
